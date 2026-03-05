@@ -29,14 +29,29 @@ jobs:
       shell: cmd
       run: bootstrap.bat
 
-    - name: Build full solution
+    - name: Build resources (generates messages.h)
       shell: cmd
       run: |
-        msbuild usbip_win2.sln ^
+        msbuild userspace\resources\resources.vcxproj ^
           /p:Configuration=Release ^
           /p:Platform=x64 ^
-          /m ^
-          /t:userspace\wusbip
+          /m
+
+    - name: Build libusbip
+      shell: cmd
+      run: |
+        msbuild userspace\libusbip\libusbip.vcxproj ^
+          /p:Configuration=Release ^
+          /p:Platform=x64 ^
+          /m
+
+    - name: Build wusbip
+      shell: cmd
+      run: |
+        msbuild userspace\wusbip\wusbip.vcxproj ^
+          /p:Configuration=Release ^
+          /p:Platform=x64 ^
+          /m
 
     - name: Upload wusbip.exe
       uses: actions/upload-artifact@v4
