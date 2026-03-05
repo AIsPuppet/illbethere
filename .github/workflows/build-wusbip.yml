@@ -1,0 +1,38 @@
+name: Build wusbip
+
+on:
+  push:
+    branches: [ "**" ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        submodules: recursive
+
+    - name: Setup MSBuild
+      uses: microsoft/setup-msbuild@v2
+
+    - name: Run bootstrap
+      shell: cmd
+      run: bootstrap.bat
+
+    - name: Build wusbip
+      shell: cmd
+      run: |
+        msbuild userspace/wusbip/wusbip.vcxproj ^
+          /p:Configuration=Release ^
+          /p:Platform=x64 ^
+          /p:VcpkgEnabled=true ^
+          /m
+
+    - name: Upload wusbip.exe
+      uses: actions/upload-artifact@v4
+      with:
+        name: wusbip-release
+        path: x64/Release/wusbip.exe
