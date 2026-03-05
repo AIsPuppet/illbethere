@@ -30,6 +30,13 @@
 #include <format>
 #include <set>
 
+#include <winsock2.h>
+#include <ws2tcpip.h>
+#include <iphlpapi.h>
+#include <icmpapi.h>
+#pragma comment(lib, "iphlpapi.lib")
+#pragma comment(lib, "ws2_32.lib")
+
 namespace
 {
 
@@ -1439,7 +1446,15 @@ std::unique_ptr<wxMenu> MainFrame::create_tree_popup_menu()
                 { wxID_SAVEAS, m_menu_file, &MainFrame::on_save_selected },
         });
 
-        return create_menu(items.data(), items.size());
+        auto menu = create_menu(items.data(), items.size());
+
+        // Append Ping at the top (before Select All)
+        menu->Prepend(ID_PING, _("Ping"), _("Ping the selected server"));
+        menu->InsertSeparator(1);
+        menu->Bind(wxEVT_COMMAND_MENU_SELECTED, &MainFrame::on_ping, this, ID_PING);
+        menu->Bind(wxEVT_UPDATE_UI, &MainFrame::on_ping_update_ui, this, ID_PING);
+
+        return menu;
 }
 
 void MainFrame::on_item_context_menu(wxTreeListEvent&)
@@ -1541,4 +1556,77 @@ void MainFrame::on_status_bar_timer(wxTimerEvent&)
         }
 
         m_status_text_pushes = 0;
+}
+
+void MainFrame::on_ping_update_ui(wxUpdateUIEvent &event)
+{
+        // Enable only when a single server (root-child) node is selected
+        wxTreeListItems sel;
+        m_treeListCtrl->GetSelections(sel);
+
+        bool enable = (sel.size() == 1) && is_server(*m_treeListCtrl, sel[0]);
+        event.Enable(enable);
+}
+
+void MainFrame::on_ping(wxCommandEvent&)
+{
+        wxTreeListItems sel;
+        m_treeListCtrl->GetSelections(sel);
+        if (sel.empty() || !is_server(*m_treeListCtrl, sel[0])) {
+                return;
+        }
+
+        // URL is stored as "hostname:port", extract hostname only
+        wxString url = m_treeListCtrl->GetItemText(sel[0]);
+        wxString hostname = url.BeforeFirst(L':');
+        if (hostname.IsEmpty()) {
+                hostname = url;
+        }
+
+        // Resolve hostname to IPv4
+        WSADATA wsa{};
+        WSAStartup(MAKEWORD(2, 2), &wsa);
+
+        addrinfo hints{};
+        hints.ai_family = AF_INET;
+        addrinfo *res = nullptr;
+        int rc = getaddrinfo(hostname.ToUTF8(), nullptr, &hints, &res);
+
+        if (rc != 0 || !res) {
+                WSACleanup();
+                set_status_text(wxString::Format(_("Ping %s: name resolution failed"), hostname));
+                return;
+        }
+
+        auto addr = reinterpret_cast<sockaddr_in*>(res->ai_addr)->sin_addr.s_addr;
+        freeaddrinfo(res);
+        WSACleanup();
+
+        // ICMP ping via WinAPI
+        HANDLE hIcmp = IcmpCreateFile();
+        if (hIcmp == INVALID_HANDLE_VALUE) {
+                set_status_text(wxString::Format(_("Ping %s: IcmpCreateFile failed"), hostname));
+                return;
+        }
+
+        constexpr DWORD timeout_ms = 3000;
+        constexpr WORD data_size = 32;
+        char send_buf[data_size]{};
+
+        DWORD reply_size = sizeof(ICMP_ECHO_REPLY) + data_size + 8;
+        auto reply_buf = std::make_unique<char[]>(reply_size);
+
+        DWORD ret = IcmpSendEcho(hIcmp, addr, send_buf, data_size,
+                nullptr, reply_buf.get(), reply_size, timeout_ms);
+
+        IcmpCloseHandle(hIcmp);
+
+        if (ret == 0) {
+                set_status_text(wxString::Format(_("Ping %s: timeout or unreachable"), hostname));
+        } else {
+                auto *reply = reinterpret_cast<ICMP_ECHO_REPLY*>(reply_buf.get());
+                set_status_text(wxString::Format(_("Ping %s: reply in %lu ms (TTL=%u)"),
+                        hostname, reply->RoundTripTime, (unsigned)reply->Options.Ttl),
+                        std::chrono::seconds(15));
+        }
 }

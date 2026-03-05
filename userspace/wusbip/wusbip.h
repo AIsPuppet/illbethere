@@ -24,6 +24,8 @@ wxDECLARE_EVENT(EVT_DEVICE_STATE, DeviceStateEvent);
 
 class MainFrame : public Frame
 {
+	enum { ID_PING = 7000 };
+
 public:
 	MainFrame(_In_ usbip::Handle read, _In_ int appearance);
 	~MainFrame();
@@ -168,4 +170,7 @@ private:
 	std::unique_ptr<wxMenu> create_menu(_In_ const menu_item_descr *items, _In_ int cnt);
 
 	std::unique_ptr<wxMenu> create_tree_popup_menu();
+
+	void on_ping(wxCommandEvent &event);
+	void on_ping_update_ui(wxUpdateUIEvent &event);
 };
