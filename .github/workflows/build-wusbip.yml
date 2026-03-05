@@ -18,18 +18,25 @@ jobs:
     - name: Setup MSBuild
       uses: microsoft/setup-msbuild@v2
 
+    - name: Install WDK via NuGet
+      shell: powershell
+      run: |
+        nuget install Microsoft.Windows.WDK.x64 -OutputDirectory "$env:TEMP\wdk"
+        nuget install Microsoft.Windows.SDK.CPP -OutputDirectory "$env:TEMP\wdk"
+        nuget install Microsoft.Windows.SDK.CPP.x64 -OutputDirectory "$env:TEMP\wdk"
+
     - name: Run bootstrap
       shell: cmd
       run: bootstrap.bat
 
-    - name: Build wusbip
+    - name: Build full solution
       shell: cmd
       run: |
-        msbuild userspace/wusbip/wusbip.vcxproj ^
+        msbuild usbip_win2.sln ^
           /p:Configuration=Release ^
           /p:Platform=x64 ^
-          /p:VcpkgEnabled=true ^
-          /m
+          /m ^
+          /t:userspace\wusbip
 
     - name: Upload wusbip.exe
       uses: actions/upload-artifact@v4
