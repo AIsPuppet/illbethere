@@ -58,5 +58,5 @@ jobs:
       with:
         name: wusbip-release
         path: |
-          userspace/wusbip/x64/Release/wusbip.exe
+          userspace/wusbip/x64/Release/illbethere.exe
           userspace/libusbip/x64/Release/libusbip.dll

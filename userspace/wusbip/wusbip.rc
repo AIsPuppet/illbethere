@@ -68,13 +68,13 @@ BEGIN
     BEGIN
         BLOCK "040004b0"
         BEGIN
-            VALUE "CompanyName", "usbip-win2"
-            VALUE "FileDescription", "USBip"
+            VALUE "CompanyName", "illbethere"
+            VALUE "FileDescription", "illbethere"
             VALUE "FileVersion", "0.9.7.6"
             VALUE "InternalName", "wusbip.exe"
             VALUE "LegalCopyright", "Copyright (c) 2022-2026 Vadym Hrynchyshyn <vadimgrn@gmail.com>"
             VALUE "OriginalFilename", "wusbip.exe"
-            VALUE "ProductName", "USBip"
+            VALUE "ProductName", "illbethere"
             VALUE "ProductVersion", "0.9.7.6"
         END
     END
@@ -204,9 +204,9 @@ ATTACH_STOP_ALL_SVG_DARK RCDATA                  "resources/attach_stop_all_dark
 
 // Icon with lowest ID value placed first to ensure application icon
 // remains consistent on all systems.
-AAAAAAAA                ICON                    "resources/USBip.ico"
+AAAAAAAA                ICON                    "resources/illbethere.ico"
 
-USBIP                   ICON                    "resources/USBip.ico"
+USBIP                   ICON                    "resources/illbethere.ico"
 
 #endif    // English (United States) resources
 /////////////////////////////////////////////////////////////////////////////

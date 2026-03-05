@@ -75,7 +75,8 @@ void App::set_names()
 {
         auto &v = win::get_file_version();
 
-        SetAppName(wx_string(v.GetProductName()));
+        SetAppName(L"USBip"); // registry key fixed, do not change
+        SetAppDisplayName(wx_string(v.GetProductName()));
         SetVendorName(wx_string(v.GetCompanyName()));
 }
 
