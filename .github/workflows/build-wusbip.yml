@@ -57,4 +57,4 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: wusbip-release
-        path: x64/Release/wusbip.exe
+        path: userspace/wusbip/x64/Release/wusbip.exe
