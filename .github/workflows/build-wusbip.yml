@@ -53,8 +53,10 @@ jobs:
           /p:Platform=x64 ^
           /m
 
-    - name: Upload wusbip.exe
+    - name: Upload artifacts
       uses: actions/upload-artifact@v4
       with:
         name: wusbip-release
-        path: userspace/wusbip/x64/Release/wusbip.exe
+        path: |
+          userspace/wusbip/x64/Release/wusbip.exe
+          userspace/libusbip/x64/Release/libusbip.dll
